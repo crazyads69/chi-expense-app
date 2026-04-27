@@ -13,8 +13,10 @@ import { notificationService } from '@/services/notifications';
 import { Card } from '@/components/card';
 import { OfflineBanner } from '@/components/offline-banner';
 import { useNetworkStatus } from '@/hooks/use-network-status';
+import { useBiometric } from '@/hooks/use-biometric';
+import { useSecurityStore } from '@/stores/security';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Download, Trash2, User, Moon, Bell, Clock, AlertTriangle } from 'lucide-react-native';
+import { Download, Trash2, User, Moon, Bell, Clock, AlertTriangle, Shield } from 'lucide-react-native';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -25,6 +27,9 @@ export default function SettingsScreen() {
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const { isAvailable, biometryType, isEnabled, enable, disable, isLoading: biometricLoading } = useBiometric();
+  const { lockTimeout, setLockTimeout } = useSecurityStore();
 
   const { preferences, setPreferences } = useNotificationStore();
   const [isLoadingPrefs, setIsLoadingPrefs] = useState(false);
@@ -333,6 +338,73 @@ export default function SettingsScreen() {
 
           {isAuthenticated && (
             <YStack gap={12}>
+              <Card>
+                <YStack gap={16}>
+                  <XStack alignItems="center" gap={8}>
+                    <Shield size={20} color="#2563EB" />
+                    <Text fontSize={16} fontWeight="600" color="$textPrimary">
+                      Security
+                    </Text>
+                  </XStack>
+
+                  {isAvailable ? (
+                    <>
+                      <XStack justifyContent="space-between" alignItems="center">
+                        <YStack>
+                          <Text fontSize={14} color="$textSecondary">
+                            Biometric Lock
+                          </Text>
+                          <Text fontSize={12} color="$textMuted">
+                            {biometryType === 'facial' ? 'Face ID' : 'Fingerprint'}
+                          </Text>
+                        </YStack>
+                        <Switch
+                          checked={isEnabled}
+                          onCheckedChange={async (checked) => {
+                            if (checked) {
+                              const success = await enable();
+                              if (!success) {
+                                showToast('Failed to enable biometric lock', 'error');
+                              }
+                            } else {
+                              disable();
+                            }
+                          }}
+                          disabled={biometricLoading}
+                          backgroundColor={isEnabled ? '$primary' : '$surface'}
+                        />
+                      </XStack>
+
+                      {isEnabled && (
+                        <XStack justifyContent="space-between" alignItems="center">
+                          <YStack>
+                            <Text fontSize={14} color="$textSecondary">
+                              Auto-lock after
+                            </Text>
+                          </YStack>
+                          <XStack gap={8} alignItems="center">
+                            {[1, 5, 15, 30].map((minutes) => (
+                              <Button
+                                key={minutes}
+                                variant={lockTimeout === minutes ? 'filled' : 'outline'}
+                                size="sm"
+                                onPress={() => setLockTimeout(minutes)}
+                              >
+                                {minutes}m
+                              </Button>
+                            ))}
+                          </XStack>
+                        </XStack>
+                      )}
+                    </>
+                  ) : (
+                    <Text fontSize={14} color="$textMuted">
+                      Biometric authentication is not available on this device.
+                    </Text>
+                  )}
+                </YStack>
+              </Card>
+
               <Card>
                 <YStack gap={12}>
                   <Text fontSize={16} fontWeight="600" color="$textPrimary">
