@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { TamaguiProvider, Theme } from 'tamagui';
+import { TamaguiProvider, Theme, YStack, Spinner } from 'tamagui';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useColorScheme, Platform } from 'react-native';
@@ -15,6 +15,9 @@ import { useAuthStore } from '@/stores/auth';
 import { authService } from '@/services/auth';
 import { notificationService } from '@/services/notifications';
 import { useNotificationStore } from '@/stores/notifications';
+import { useSecurityStore } from '@/stores/security';
+import { useBiometric } from '@/hooks/use-biometric';
+import { BiometricPrompt } from '@/components/biometric-prompt';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -31,6 +34,10 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   const segments = useSegments();
   const router = useRouter();
   const { isAuthenticated, isLoading, setLoading } = useAuthStore();
+  const { isBiometricEnabled, shouldRequireAuth, updateLastAuthenticated } = useSecurityStore();
+  const { authenticate, isAvailable, biometryType } = useBiometric();
+  const [showBiometricPrompt, setShowBiometricPrompt] = useState(false);
+  const [biometricError, setBiometricError] = useState<string | null>(null);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -44,13 +51,48 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
         router.replace('/login');
       } else if (hasSession && inAuthGroup) {
         router.replace('/(tabs)/dashboard');
+      } else if (hasSession && isBiometricEnabled && shouldRequireAuth()) {
+        setShowBiometricPrompt(true);
       }
     };
 
     initAuth();
   }, [isAuthenticated, segments]);
 
-  return <>{children}</>;
+  const handleAuthenticate = async () => {
+    setBiometricError(null);
+    const success = await authenticate();
+    if (success) {
+      setShowBiometricPrompt(false);
+      updateLastAuthenticated();
+    } else {
+      setBiometricError('Authentication failed. Please try again.');
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <YStack flex={1} justifyContent="center" alignItems="center" backgroundColor="$background">
+        <Spinner size="large" color="$primary" />
+      </YStack>
+    );
+  }
+
+  return (
+    <>
+      {children}
+      {showBiometricPrompt && (
+        <BiometricPrompt
+          biometryType={isAvailable ? biometryType : null}
+          onAuthenticate={handleAuthenticate}
+          onCancel={() => {
+            setShowBiometricPrompt(false);
+          }}
+          error={biometricError}
+        />
+      )}
+    </>
+  );
 }
 
 export default function RootLayout() {
