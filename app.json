@@ -1,0 +1,55 @@
+{
+  "expo": {
+    "name": "Chi Expense",
+    "slug": "chi-expense",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.chiexpense.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Chi Expense uses your camera to capture receipt photos for expense tracking.",
+        "NSPhotoLibraryUsageDescription": "Chi Expense accesses your photos to let you select receipt screenshots for expense tracking.",
+        "NSPhotoLibraryAddUsageDescription": "Chi Expense saves receipt photos to your library."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#000000"
+      },
+      "package": "com.chiexpense.app",
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Chi Expense accesses your photos to let you select receipt screenshots for expense tracking."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
