@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useColorScheme, Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
+import * as Linking from 'expo-linking';
 
 import config from '../tamagui.config';
 import { useThemeStore } from '@/stores/theme';
@@ -109,6 +110,7 @@ export default function RootLayout() {
   const activeTheme = followSystem
     ? (systemColorScheme ?? 'light')
     : theme;
+  const router = useRouter();
 
   useEffect(() => {
     if (fontsLoaded) {
@@ -153,6 +155,23 @@ export default function RootLayout() {
       }
     };
   }, [isAuthenticated]);
+
+  useEffect(() => {
+    const handleUrl = ({ url }: { url: string }) => {
+      const parsed = Linking.parse(url);
+      if (parsed.path === 'dashboard' || parsed.path === '/dashboard') {
+        router.push('/(tabs)/dashboard');
+      }
+    };
+
+    const subscription = Linking.addEventListener('url', handleUrl);
+
+    Linking.getInitialURL().then((url) => {
+      if (url) handleUrl({ url });
+    });
+
+    return () => subscription.remove();
+  }, [router]);
 
   if (!fontsLoaded) {
     return null;
