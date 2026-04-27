@@ -1,0 +1,16 @@
+{
+  "en-US": {
+    "title": "Chi Expense - Spending Tracker",
+    "subtitle": "Track expenses effortlessly",
+    "description": "Chi Expense helps you track daily spending with smart AI receipt scanning. Simply snap a photo of your receipt and watch as the app automatically extracts merchant, amount, date, and category.\n\nKey Features:\n- AI-powered receipt scanning (OpenAI GPT-4o)\n- Manual expense entry with categories\n- Monthly spending dashboard with charts\n- Category breakdown and trends\n- Export data to CSV\n- Secure authentication\n- Dark mode support\n\nPerfect for personal finance management in Vietnam and beyond.",
+    "keywords": ["expense", "tracker", "budget", "receipt", "scanning", "finance", "money", "vietnam"],
+    "releaseNotes": "Initial release with AI receipt scanning and expense tracking."
+  },
+  "vi": {
+    "title": "Chi Expense - Quản Lý Chi Tiêu",
+    "subtitle": "Theo dõi chi tiêu dễ dàng",
+    "description": "Chi Expense giúp bạn theo dõi chi tiêu hàng ngày với tính năng quét hóa đơn bằng AI. Chỉ cần chụp ảnh hóa đơn và ứng dụng sẽ tự động nhận diện cửa hàng, số tiền, ngày tháng và danh mục.\n\nTính năng chính:\n- Quét hóa đơn bằng AI (OpenAI GPT-4o)\n- Nhập chi tiêu thủ công với danh mục\n- Bảng điều khiển chi tiêu hàng tháng với biểu đồ\n- Phân tích danh mục và xu hướng\n- Xuất dữ liệu ra CSV\n- Xác thực bảo mật\n- Hỗ trợ chế độ tối\n\nHoàn hảo cho quản lý tài chính cá nhân tại Việt Nam.",
+    "keywords": ["chi tiêu", "theo dõi", "ngân sách", "hóa đơn", "quét", "tài chính", "tiền", "việt nam"],
+    "releaseNotes": "Phiên bản đầu tiên với quét hóa đơn AI và theo dõi chi tiêu."
+  }
+}
