@@ -2,14 +2,14 @@
   "expo": {
     "name": "Chi Expense",
     "slug": "chi-expense",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#000000"
+      "backgroundColor": "#FFFFFF"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -17,23 +17,42 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.chiexpense.app",
+      "buildNumber": "1.1.0",
+      "icon": {
+        "dark": "./assets/icon-dark.png",
+        "tinted": "./assets/icon-tinted.png"
+      },
+      "splash": {
+        "image": "./assets/splash.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#FFFFFF",
+        "dark": {
+          "image": "./assets/splash-dark.png",
+          "backgroundColor": "#000000"
+        }
+      },
       "infoPlist": {
-        "NSCameraUsageDescription": "Chi Expense uses your camera to capture receipt photos for expense tracking.",
-        "NSPhotoLibraryUsageDescription": "Chi Expense accesses your photos to let you select receipt screenshots for expense tracking.",
+        "NSCameraUsageDescription": "Chi Expense uses your camera to scan receipts and extract expense information.",
+        "NSPhotoLibraryUsageDescription": "Chi Expense accesses your photos to let you select receipt images for scanning.",
         "NSPhotoLibraryAddUsageDescription": "Chi Expense saves receipt photos to your library.",
-        "NSFaceIDUsageDescription": "Chi Expense uses Face ID to protect your expense data."
+        "NSFaceIDUsageDescription": "Chi Expense uses Face ID to secure your financial data.",
+        "UIBackgroundModes": ["fetch", "remote-notification"]
       }
     },
     "android": {
+      "package": "com.chiexpense.app",
+      "versionCode": 2,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#000000"
+        "backgroundColor": "#FFFFFF"
       },
-      "package": "com.chiexpense.app",
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
+        "WRITE_EXTERNAL_STORAGE",
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT",
+        "RECEIVE_BOOT_COMPLETED"
       ]
     },
     "scheme": "chi-expense",
@@ -58,7 +77,30 @@
           "enableBackgroundRemoteNotifications": false
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FFFFFF",
+          "image": "./assets/splash.png",
+          "dark": {
+            "image": "./assets/splash-dark.png",
+            "backgroundColor": "#000000"
+          },
+          "imageWidth": 200
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "newArchEnabled": true
+          },
+          "android": {
+            "newArchEnabled": true
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
