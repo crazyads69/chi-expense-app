@@ -20,7 +20,8 @@
       "infoPlist": {
         "NSCameraUsageDescription": "Chi Expense uses your camera to capture receipt photos for expense tracking.",
         "NSPhotoLibraryUsageDescription": "Chi Expense accesses your photos to let you select receipt screenshots for expense tracking.",
-        "NSPhotoLibraryAddUsageDescription": "Chi Expense saves receipt photos to your library."
+        "NSPhotoLibraryAddUsageDescription": "Chi Expense saves receipt photos to your library.",
+        "NSFaceIDUsageDescription": "Chi Expense uses Face ID to protect your expense data."
       }
     },
     "android": {
@@ -55,7 +56,8 @@
           "defaultChannel": "default",
           "enableBackgroundRemoteNotifications": false
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true
