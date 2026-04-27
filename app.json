@@ -46,6 +46,15 @@
         {
           "photosPermission": "Chi Expense accesses your photos to let you select receipt screenshots for expense tracking."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#ffffff",
+          "defaultChannel": "default",
+          "enableBackgroundRemoteNotifications": false
+        }
       ]
     ],
     "experiments": {
