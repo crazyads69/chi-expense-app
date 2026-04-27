@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { YStack, Text, XStack, ScrollView, Switch } from 'tamagui';
-import { Alert } from 'react-native';
+import { Alert, Platform, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button } from '@/components/button';
 import { authService } from '@/services/auth';
@@ -8,10 +8,12 @@ import { api } from '@/services/api';
 import { useAuthStore } from '@/stores/auth';
 import { useThemeStore } from '@/stores/theme';
 import { useUIStore } from '@/stores/ui';
+import { useNotificationStore } from '@/stores/notifications';
+import { notificationService } from '@/services/notifications';
 import { Card } from '@/components/card';
 import { OfflineBanner } from '@/components/offline-banner';
 import { useNetworkStatus } from '@/hooks/use-network-status';
-import { Download, Trash2, User, Moon, Wifi } from 'lucide-react-native';
+import { Download, Trash2, User, Moon, Bell } from 'lucide-react-native';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -22,6 +24,56 @@ export default function SettingsScreen() {
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const { preferences, setPreferences } = useNotificationStore();
+  const [isLoadingPrefs, setIsLoadingPrefs] = useState(false);
+  const [permissionStatus, setPermissionStatus] = useState<{ granted: boolean; canAskAgain: boolean }>({
+    granted: false,
+    canAskAgain: true,
+  });
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const loadPreferences = async () => {
+      setIsLoadingPrefs(true);
+      const status = await notificationService.getPermissionsStatus();
+      setPermissionStatus(status);
+
+      const prefs = await notificationService.fetchPreferences();
+      if (prefs) {
+        setPreferences(prefs);
+      }
+      setIsLoadingPrefs(false);
+    };
+
+    loadPreferences();
+  }, [isAuthenticated]);
+
+  const handleRequestPermission = async () => {
+    if (!permissionStatus.canAskAgain && !permissionStatus.granted) {
+      Linking.openSettings();
+      return;
+    }
+
+    const { granted, canAskAgain } = await notificationService.requestPermissions();
+    setPermissionStatus({ granted, canAskAgain });
+
+    if (granted) {
+      const token = await notificationService.registerPushTokenAsync();
+      if (token) {
+        await notificationService.registerTokenWithBackend(token, Platform.OS);
+      }
+    }
+  };
+
+  const handleUpdatePreference = async (update: Partial<typeof preferences>) => {
+    setPreferences(update);
+    const success = await notificationService.updatePreferences(update);
+    if (!success) {
+      showToast('Failed to save preferences', 'error');
+    }
+  };
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
@@ -104,6 +156,73 @@ export default function SettingsScreen() {
               </YStack>
             </Card>
           )}
+
+          <Card>
+            <YStack gap={16}>
+              <XStack alignItems="center" gap={8}>
+                <Bell size={20} color="#2563EB" />
+                <Text fontSize={16} fontWeight="600" color="$textPrimary">
+                  Notifications
+                </Text>
+              </XStack>
+
+              {!permissionStatus.granted && (
+                <YStack gap={8}>
+                  <Text fontSize={14} color="$textSecondary">
+                    Enable push notifications to receive budget alerts and daily summaries.
+                  </Text>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onPress={handleRequestPermission}
+                    disabled={isLoadingPrefs}
+                  >
+                    {permissionStatus.canAskAgain ? 'Enable Notifications' : 'Open Settings'}
+                  </Button>
+                </YStack>
+              )}
+
+              {permissionStatus.granted && (
+                <YStack gap={16}>
+                  <XStack justifyContent="space-between" alignItems="center">
+                    <YStack>
+                      <Text fontSize={14} color="$textPrimary">
+                        Daily Summary
+                      </Text>
+                      <Text fontSize={12} color="$textMuted">
+                        {preferences.dailySummaryTime}
+                      </Text>
+                    </YStack>
+                    <Switch
+                      checked={preferences.dailySummaryEnabled}
+                      onCheckedChange={(checked) =>
+                        handleUpdatePreference({ dailySummaryEnabled: checked })
+                      }
+                      backgroundColor={preferences.dailySummaryEnabled ? '$primary' : '$surface'}
+                    />
+                  </XStack>
+
+                  <XStack justifyContent="space-between" alignItems="center">
+                    <YStack>
+                      <Text fontSize={14} color="$textPrimary">
+                        Budget Alerts
+                      </Text>
+                      <Text fontSize={12} color="$textMuted">
+                        At {preferences.budgetThreshold}% of budget
+                      </Text>
+                    </YStack>
+                    <Switch
+                      checked={preferences.budgetAlertsEnabled}
+                      onCheckedChange={(checked) =>
+                        handleUpdatePreference({ budgetAlertsEnabled: checked })
+                      }
+                      backgroundColor={preferences.budgetAlertsEnabled ? '$primary' : '$surface'}
+                    />
+                  </XStack>
+                </YStack>
+              )}
+            </YStack>
+          </Card>
 
           <Card>
             <YStack gap={16}>
