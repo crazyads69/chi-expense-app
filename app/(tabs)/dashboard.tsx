@@ -8,6 +8,10 @@ import { SkeletonCard } from '@/components/skeleton';
 import { MonthPicker } from '@/components/month-picker';
 import { OfflineBanner } from '@/components/offline-banner';
 import { useNetworkStatus } from '@/hooks/use-network-status';
+import { SpendingTrendChart } from '@/components/spending-trend-chart';
+import { CategoryDistributionChart } from '@/components/category-distribution-chart';
+import { AnalyticsCard } from '@/components/analytics-card';
+import { useAnalytics } from '@/hooks/use-analytics';
 import { RefreshControl } from 'react-native';
 import { TrendingUp, TrendingDown, Wallet, Receipt, Calendar } from 'lucide-react-native';
 
@@ -34,6 +38,8 @@ export default function DashboardScreen() {
       return response.data;
     },
   });
+
+  const { trendData, distributionData, isLoading: analyticsLoading } = useAnalytics(selectedMonth);
 
   return (
     <YStack flex={1} backgroundColor="$background">
@@ -68,6 +74,7 @@ export default function DashboardScreen() {
           }
         >
           <YStack padding={24} paddingTop={8} gap={16}>
+            {/* Summary Cards */}
             <Card>
               <YStack gap={8}>
                 <XStack alignItems="center" gap={8}>
@@ -109,6 +116,7 @@ export default function DashboardScreen() {
               </YStack>
             </Card>
 
+            {/* Category Breakdown */}
             <YStack gap={12}>
               <Text fontSize={18} fontWeight="600" color="$textPrimary">
                 By Category
@@ -148,6 +156,28 @@ export default function DashboardScreen() {
                 ))
               )}
             </YStack>
+
+            {/* Spending Trend Chart */}
+            {analyticsLoading ? (
+              <AnalyticsCard title="Spending Trend">
+                <SkeletonCard />
+              </AnalyticsCard>
+            ) : (
+              <AnalyticsCard title="Spending Trend" empty={trendData.length === 0}>
+                <SpendingTrendChart data={trendData} currency="VND" />
+              </AnalyticsCard>
+            )}
+
+            {/* Category Distribution Chart */}
+            {analyticsLoading ? (
+              <AnalyticsCard title="Category Distribution">
+                <SkeletonCard />
+              </AnalyticsCard>
+            ) : (
+              <AnalyticsCard title="Category Distribution" empty={distributionData.length === 0}>
+                <CategoryDistributionChart data={distributionData} currency="VND" />
+              </AnalyticsCard>
+            )}
           </YStack>
         </ScrollView>
       )}
