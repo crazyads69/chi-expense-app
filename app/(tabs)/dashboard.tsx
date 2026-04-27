@@ -12,6 +12,7 @@ import { SpendingTrendChart } from '@/components/spending-trend-chart';
 import { CategoryDistributionChart } from '@/components/category-distribution-chart';
 import { AnalyticsCard } from '@/components/analytics-card';
 import { useAnalytics } from '@/hooks/use-analytics';
+import { useWidgetUpdater } from '@/hooks/use-widget-updater';
 import { RefreshControl } from 'react-native';
 import { TrendingUp, TrendingDown, Wallet, Receipt, Calendar } from 'lucide-react-native';
 
@@ -40,6 +41,8 @@ export default function DashboardScreen() {
   });
 
   const { trendData, distributionData, isLoading: analyticsLoading } = useAnalytics(selectedMonth);
+
+  useWidgetUpdater(data, selectedMonth);
 
   return (
     <YStack flex={1} backgroundColor="$background">
