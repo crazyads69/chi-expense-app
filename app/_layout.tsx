@@ -6,12 +6,15 @@ import { StatusBar } from 'expo-status-bar';
 import { TamaguiProvider, Theme } from 'tamagui';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { useColorScheme } from 'react-native';
+import { useColorScheme, Platform } from 'react-native';
+import * as Notifications from 'expo-notifications';
 
 import config from '../tamagui.config';
 import { useThemeStore } from '@/stores/theme';
 import { useAuthStore } from '@/stores/auth';
 import { authService } from '@/services/auth';
+import { notificationService } from '@/services/notifications';
+import { useNotificationStore } from '@/stores/notifications';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -58,6 +61,8 @@ export default function RootLayout() {
 
   const systemColorScheme = useColorScheme();
   const { theme, followSystem } = useThemeStore();
+  const { isAuthenticated } = useAuthStore();
+  const { setPushToken, setPermissionsGranted } = useNotificationStore();
 
   const activeTheme = followSystem
     ? (systemColorScheme ?? 'light')
@@ -68,6 +73,44 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
+
+  useEffect(() => {
+    // Set up foreground notification handler
+    notificationService.setNotificationHandler();
+
+    // Check permission status on mount
+    notificationService.getPermissionsStatus().then(({ granted }) => {
+      setPermissionsGranted(granted);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    let tokenSubscription: Notifications.EventSubscription;
+
+    const setupPushToken = async () => {
+      const token = await notificationService.registerPushTokenAsync();
+      if (token) {
+        setPushToken(token);
+        await notificationService.registerTokenWithBackend(token, Platform.OS);
+      }
+
+      // Listen for token changes
+      tokenSubscription = notificationService.addPushTokenListener(async (newToken) => {
+        setPushToken(newToken);
+        await notificationService.registerTokenWithBackend(newToken, Platform.OS);
+      });
+    };
+
+    setupPushToken();
+
+    return () => {
+      if (tokenSubscription) {
+        notificationService.removePushTokenListener(tokenSubscription);
+      }
+    };
+  }, [isAuthenticated]);
 
   if (!fontsLoaded) {
     return null;
