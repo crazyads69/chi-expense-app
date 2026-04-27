@@ -13,7 +13,8 @@ import { notificationService } from '@/services/notifications';
 import { Card } from '@/components/card';
 import { OfflineBanner } from '@/components/offline-banner';
 import { useNetworkStatus } from '@/hooks/use-network-status';
-import { Download, Trash2, User, Moon, Bell } from 'lucide-react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Download, Trash2, User, Moon, Bell, Clock, AlertTriangle } from 'lucide-react-native';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -27,6 +28,7 @@ export default function SettingsScreen() {
 
   const { preferences, setPreferences } = useNotificationStore();
   const [isLoadingPrefs, setIsLoadingPrefs] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const [permissionStatus, setPermissionStatus] = useState<{ granted: boolean; canAskAgain: boolean }>({
     granted: false,
     canAskAgain: true,
@@ -72,6 +74,15 @@ export default function SettingsScreen() {
     const success = await notificationService.updatePreferences(update);
     if (!success) {
       showToast('Failed to save preferences', 'error');
+    }
+  };
+
+  const onTimeChange = (event: any, selectedDate?: Date) => {
+    setShowTimePicker(false);
+    if (selectedDate) {
+      const hours = selectedDate.getHours().toString().padStart(2, '0');
+      const minutes = selectedDate.getMinutes().toString().padStart(2, '0');
+      handleUpdatePreference({ dailySummaryTime: `${hours}:${minutes}` });
     }
   };
 
@@ -202,6 +213,29 @@ export default function SettingsScreen() {
                     />
                   </XStack>
 
+                  {preferences.dailySummaryEnabled && (
+                    <XStack justifyContent="space-between" alignItems="center">
+                      <XStack alignItems="center" gap={8}>
+                        <Clock size={16} color="$textSecondary" />
+                        <Text fontSize={14} color="$textSecondary">
+                          Time
+                        </Text>
+                      </XStack>
+                      <Button variant="outline" size="sm" onPress={() => setShowTimePicker(true)}>
+                        {preferences.dailySummaryTime}
+                      </Button>
+                    </XStack>
+                  )}
+
+                  {showTimePicker && (
+                    <DateTimePicker
+                      value={new Date(`2000-01-01T${preferences.dailySummaryTime}:00`)}
+                      mode="time"
+                      display="default"
+                      onChange={onTimeChange}
+                    />
+                  )}
+
                   <XStack justifyContent="space-between" alignItems="center">
                     <YStack>
                       <Text fontSize={14} color="$textPrimary">
@@ -219,6 +253,44 @@ export default function SettingsScreen() {
                       backgroundColor={preferences.budgetAlertsEnabled ? '$primary' : '$surface'}
                     />
                   </XStack>
+
+                  {preferences.budgetAlertsEnabled && (
+                    <XStack justifyContent="space-between" alignItems="center">
+                      <XStack alignItems="center" gap={8}>
+                        <AlertTriangle size={16} color="$textSecondary" />
+                        <Text fontSize={14} color="$textSecondary">
+                          Threshold
+                        </Text>
+                      </XStack>
+                      <XStack alignItems="center" gap={12}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onPress={() =>
+                            handleUpdatePreference({
+                              budgetThreshold: Math.max(1, preferences.budgetThreshold - 5),
+                            })
+                          }
+                        >
+                          -
+                        </Button>
+                        <Text fontSize={16} fontWeight="600">
+                          {preferences.budgetThreshold}%
+                        </Text>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onPress={() =>
+                            handleUpdatePreference({
+                              budgetThreshold: Math.min(100, preferences.budgetThreshold + 5),
+                            })
+                          }
+                        >
+                          +
+                        </Button>
+                      </XStack>
+                    </XStack>
+                  )}
                 </YStack>
               )}
             </YStack>
