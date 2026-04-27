@@ -3,6 +3,7 @@ import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import { api } from './api';
+import type { NotificationPreferences } from '@/stores/notifications';
 
 export interface NotificationPermissions {
   granted: boolean;
@@ -108,6 +109,26 @@ class NotificationService {
         shouldSetBadge: false,
       }),
     });
+  }
+
+  async fetchPreferences(): Promise<NotificationPreferences | null> {
+    try {
+      const response = await api.get<NotificationPreferences>('/notifications/preferences');
+      return response.data ?? null;
+    } catch (error) {
+      console.error('Failed to fetch notification preferences:', error);
+      return null;
+    }
+  }
+
+  async updatePreferences(prefs: Partial<NotificationPreferences>): Promise<boolean> {
+    try {
+      await api.patch('/notifications/preferences', prefs);
+      return true;
+    } catch (error) {
+      console.error('Failed to update notification preferences:', error);
+      return false;
+    }
   }
 }
 
