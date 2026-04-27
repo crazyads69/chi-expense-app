@@ -36,6 +36,7 @@
         "WRITE_EXTERNAL_STORAGE"
       ]
     },
+    "scheme": "chi-expense",
     "web": {
       "favicon": "./assets/favicon.png"
     },
