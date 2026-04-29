@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { YStack, Text, XStack, ScrollView } from 'tamagui';
 import { KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -27,6 +27,26 @@ export default function AddScreen() {
   const [isParsing, setIsParsing] = useState(false);
   const [parsedResult, setParsedResult] = useState<ParsedExpense | null>(null);
   const [parseError, setParseError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [parsingMessage, setParsingMessage] = useState('Thinking...');
+
+  const parsingMessages = [
+    'Reading your receipt...',
+    'Finding the total...',
+    'Identifying the merchant...',
+    'Almost there...',
+  ];
+
+  useEffect(() => {
+    if (!isParsing) return;
+    let index = 0;
+    setParsingMessage(parsingMessages[0]);
+    const interval = setInterval(() => {
+      index = (index + 1) % parsingMessages.length;
+      setParsingMessage(parsingMessages[index]);
+    }, 1500);
+    return () => clearInterval(interval);
+  }, [isParsing]);
 
   const {
     selectedImage,
@@ -49,8 +69,9 @@ export default function AddScreen() {
       });
 
       setParsedResult(response.data.parsed);
-    } catch (err: any) {
-      setParseError(err.message || 'Failed to parse expense');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to parse expense';
+      setParseError(message);
       showToast('Failed to parse expense', 'error');
     } finally {
       setIsParsing(false);
@@ -71,27 +92,13 @@ export default function AddScreen() {
         uri: formatted.uri,
         type: formatted.type,
         name: formatted.name,
-      } as any);
+      } as unknown as Blob);
 
-      const response = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/api/v1/input/image`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-          body: formData,
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to parse receipt');
-      }
-
-      const data = await response.json();
-      setParsedResult(data.parsed);
-    } catch (err: any) {
-      setParseError(err.message || 'Failed to parse receipt');
+      const response = await api.postMultipart<{ parsed: ParsedExpense }>('/input/image', formData);
+      setParsedResult(response.data.parsed);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to parse receipt';
+      setParseError(message);
       showToast('Failed to parse receipt', 'error');
     } finally {
       setIsParsing(false);
@@ -99,8 +106,9 @@ export default function AddScreen() {
   };
 
   const handleSave = async () => {
-    if (!parsedResult) return;
+    if (!parsedResult || isSaving) return;
 
+    setIsSaving(true);
     try {
       await api.post('/transactions', {
         amount: parsedResult.amount,
@@ -115,8 +123,11 @@ export default function AddScreen() {
       setInputText('');
       clearImage();
       router.push('/(tabs)/transactions');
-    } catch (err: any) {
+    } catch (err: unknown) {
+      console.error('[Add] Save expense failed:', err);
       showToast('Failed to save expense', 'error');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -132,7 +143,7 @@ export default function AddScreen() {
     >
       <YStack flex={1} backgroundColor="$background" padding={24} gap={16}>
         <Text fontSize={20} fontWeight="600" color="$textPrimary">
-          Add Expense
+          What did you buy?
         </Text>
 
         {!parsedResult ? (
@@ -159,7 +170,7 @@ export default function AddScreen() {
               {inputMode === 'text' && (
                 <YStack gap={12}>
                   <Input
-                    label="Expense Details"
+                    label="What did you spend on?"
                     placeholder="E.g., Coffee at Starbucks 45k"
                     value={inputText}
                     onChangeText={setInputText}
@@ -173,7 +184,7 @@ export default function AddScreen() {
                     loading={isParsing}
                     disabled={!inputText.trim() || isParsing}
                   >
-                    Parse Expense
+                    Add it
                   </Button>
                 </YStack>
               )}
@@ -214,7 +225,7 @@ export default function AddScreen() {
                     loading={isParsing || isImageLoading}
                     disabled={!selectedImage || isParsing || isImageLoading}
                   >
-                    Parse Receipt
+                    Scan receipt
                   </Button>
                 </YStack>
               )}
@@ -223,7 +234,7 @@ export default function AddScreen() {
               {inputMode === 'sms' && (
                 <YStack gap={12}>
                   <Input
-                    label="Banking SMS"
+                    label="Paste your bank message"
                     placeholder="Paste your banking SMS here..."
                     value={inputText}
                     onChangeText={setInputText}
@@ -237,9 +248,15 @@ export default function AddScreen() {
                     loading={isParsing}
                     disabled={!inputText.trim() || isParsing}
                   >
-                    Parse SMS
+                    Read SMS
                   </Button>
                 </YStack>
+              )}
+
+              {isParsing && (
+                <Text fontSize={14} color="$textMuted" textAlign="center">
+                  {parsingMessage}
+                </Text>
               )}
 
               {(parseError || imageError) && (
@@ -254,7 +271,7 @@ export default function AddScreen() {
           <ScrollView showsVerticalScrollIndicator={false}>
             <YStack gap={16} paddingBottom={100}>
               <Text fontSize={18} fontWeight="600" color="$textPrimary">
-                Preview
+                Looks good?
               </Text>
 
               <Card>
@@ -302,15 +319,17 @@ export default function AddScreen() {
                   variant="filled"
                   size="md"
                   onPress={handleSave}
+                  loading={isSaving}
+                  disabled={isSaving}
                 >
-                  Save Expense
+                  Save it
                 </Button>
                 <Button
                   variant="outline"
                   size="md"
                   onPress={handleRetry}
                 >
-                  Try Again
+                  Start over
                 </Button>
               </YStack>
             </YStack>

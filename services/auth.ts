@@ -50,8 +50,8 @@ class AuthServiceImpl implements AuthService {
   async signOut(): Promise<void> {
     try {
       await authClient.signOut();
-    } catch {
-      // Ignore signout errors
+    } catch (err) {
+      console.error('[Auth] Sign out error:', err);
     } finally {
       await useAuthStore.getState().logout();
     }
@@ -71,7 +71,8 @@ class AuthServiceImpl implements AuthService {
         return true;
       }
       return false;
-    } catch {
+    } catch (err) {
+      console.error('[Auth] Session refresh error:', err);
       return false;
     }
   }

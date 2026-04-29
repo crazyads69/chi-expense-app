@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { YStack, Text, XStack, ScrollView } from 'tamagui';
-import { Pressable } from 'react-native';
+import { YStack, Text, XStack, ScrollView, useTheme } from 'tamagui';
+import { Pressable, RefreshControl } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/services/api';
 import { Card } from '@/components/card';
@@ -13,8 +13,8 @@ import { CategoryDistributionChart } from '@/components/category-distribution-ch
 import { AnalyticsCard } from '@/components/analytics-card';
 import { useAnalytics } from '@/hooks/use-analytics';
 import { useWidgetUpdater } from '@/hooks/use-widget-updater';
-import { RefreshControl } from 'react-native';
 import { TrendingUp, TrendingDown, Wallet, Receipt, Calendar } from 'lucide-react-native';
+import { AnimatedNumber } from '@/components/animated-number';
 
 interface DashboardData {
   totalSpending: number;
@@ -28,6 +28,7 @@ interface DashboardData {
 }
 
 export default function DashboardScreen() {
+  const theme = useTheme();
   const { isOffline } = useNetworkStatus();
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
   const [showMonthPicker, setShowMonthPicker] = useState(false);
@@ -55,7 +56,7 @@ export default function DashboardScreen() {
           </Text>
           <Pressable onPress={() => setShowMonthPicker(true)}>
             <XStack alignItems="center" gap={4}>
-              <Calendar size={20} color="#2563EB" />
+              <Calendar size={20} color={theme.primary.val} />
               <Text fontSize={14} color="$primary">
                 {selectedMonth}
               </Text>
@@ -76,60 +77,71 @@ export default function DashboardScreen() {
             <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
           }
         >
-          <YStack padding={24} paddingTop={8} gap={16}>
-            {/* Summary Cards */}
-            <Card>
-              <YStack gap={8}>
-                <XStack alignItems="center" gap={8}>
-                  <Wallet size={24} color="#2563EB" />
-                  <Text fontSize={14} color="$textSecondary">
-                    Total Spending
-                  </Text>
-                </XStack>
-                <Text fontSize={28} fontWeight="600" color="$textPrimary">
-                  {data?.totalSpending?.toLocaleString('vi-VN') || '0'} VND
-                </Text>
-                <XStack alignItems="center" gap={4}>
-                  {(data?.monthOverMonthChange ?? 0) >= 0 ? (
-                    <TrendingUp size={16} color="#EF4444" />
-                  ) : (
-                    <TrendingDown size={16} color="#10B981" />
-                  )}
-                  <Text
-                    fontSize={14}
-                    color={(data?.monthOverMonthChange ?? 0) >= 0 ? '$error' : '$success'}
-                  >
-                    {Math.abs(data?.monthOverMonthChange ?? 0)}% vs last month
-                  </Text>
-                </XStack>
-              </YStack>
-            </Card>
+          <YStack padding={24} paddingTop={8} gap={32}>
+            {/* Summary Row */}
+            <XStack gap={12}>
+              <Card>
+                <YStack gap={8} flex={1}>
+                  <XStack alignItems="center" gap={8}>
+                    <Wallet size={20} color={theme.primary.val} />
+                    <Text fontSize={14} color="$textSecondary">
+                      Total Spending
+                    </Text>
+                  </XStack>
+                  <AnimatedNumber
+                    value={data?.totalSpending || 0}
+                    formatter={(val) => val.toLocaleString('vi-VN')}
+                  />
+                  <XStack alignItems="center" gap={4}>
+                    {(data?.monthOverMonthChange ?? 0) >= 0 ? (
+                      <TrendingUp size={14} color={theme.error.val} />
+                    ) : (
+                      <TrendingDown size={14} color={theme.success.val} />
+                    )}
+                    <Text
+                      fontSize={12}
+                      color={(data?.monthOverMonthChange ?? 0) >= 0 ? '$error' : '$success'}
+                    >
+                      {Math.abs(data?.monthOverMonthChange ?? 0)}% vs last month
+                    </Text>
+                  </XStack>
+                </YStack>
+              </Card>
 
-            <Card>
-              <YStack gap={8}>
-                <XStack alignItems="center" gap={8}>
-                  <Receipt size={24} color="#2563EB" />
-                  <Text fontSize={14} color="$textSecondary">
-                    Transactions
+              <Card>
+                <YStack gap={8} flex={1}>
+                  <XStack alignItems="center" gap={8}>
+                    <Receipt size={20} color={theme.primary.val} />
+                    <Text fontSize={14} color="$textSecondary">
+                      Transactions
+                    </Text>
+                  </XStack>
+                  <Text fontSize={24} fontWeight="600" color="$textPrimary">
+                    {data?.transactionCount || 0}
                   </Text>
-                </XStack>
-                <Text fontSize={28} fontWeight="600" color="$textPrimary">
-                  {data?.transactionCount || 0}
-                </Text>
-              </YStack>
-            </Card>
+                  <Text fontSize={12} color="$textMuted">
+                    this month
+                  </Text>
+                </YStack>
+              </Card>
+            </XStack>
 
             {/* Category Breakdown */}
-            <YStack gap={12}>
+            <YStack gap={16}>
               <Text fontSize={18} fontWeight="600" color="$textPrimary">
                 By Category
               </Text>
 
               {data?.categoryBreakdown?.length === 0 ? (
                 <Card>
-                  <Text fontSize={14} color="$textSecondary" textAlign="center">
-                    Not enough data
-                  </Text>
+                  <YStack alignItems="center" paddingVertical={24} gap={8}>
+                    <Text fontSize={14} color="$textSecondary" textAlign="center">
+                      Your spending story is just beginning
+                    </Text>
+                    <Text fontSize={12} color="$textMuted" textAlign="center">
+                      Add expenses to see your category breakdown
+                    </Text>
+                  </YStack>
                 </Card>
               ) : (
                 data?.categoryBreakdown?.map((item) => (
@@ -161,58 +173,73 @@ export default function DashboardScreen() {
             </YStack>
 
             {/* Spending Trend Chart */}
-            {analyticsLoading ? (
-              <AnalyticsCard title="Spending Trend">
-                <SkeletonCard />
-              </AnalyticsCard>
-            ) : (
-              <AnalyticsCard title="Spending Trend" empty={trendData.length === 0}>
-                <SpendingTrendChart data={trendData} currency="VND" />
-              </AnalyticsCard>
-            )}
+            <YStack gap={16}>
+              <Text fontSize={18} fontWeight="600" color="$textPrimary">
+                Spending Trend
+              </Text>
+              {analyticsLoading ? (
+                <AnalyticsCard>
+                  <SkeletonCard />
+                </AnalyticsCard>
+              ) : (
+                <AnalyticsCard empty={trendData.length === 0}>
+                  <SpendingTrendChart data={trendData} currency="VND" />
+                </AnalyticsCard>
+              )}
+            </YStack>
 
             {/* Category Distribution Chart */}
-            {analyticsLoading ? (
-              <AnalyticsCard title="Category Distribution">
-                <SkeletonCard />
-              </AnalyticsCard>
-            ) : (
-              <AnalyticsCard title="Category Distribution" empty={distributionData.length === 0}>
-                <CategoryDistributionChart data={distributionData} currency="VND" />
-              </AnalyticsCard>
-            )}
+            <YStack gap={16}>
+              <Text fontSize={18} fontWeight="600" color="$textPrimary">
+                Category Distribution
+              </Text>
+              {analyticsLoading ? (
+                <AnalyticsCard>
+                  <SkeletonCard />
+                </AnalyticsCard>
+              ) : (
+                <AnalyticsCard empty={distributionData.length === 0}>
+                  <CategoryDistributionChart data={distributionData} currency="VND" />
+                </AnalyticsCard>
+              )}
+            </YStack>
           </YStack>
         </ScrollView>
       )}
 
       {/* Month Picker Modal */}
       {showMonthPicker && (
-        <YStack
-          position="absolute"
-          top={0}
-          left={0}
-          right={0}
-          bottom={0}
-          backgroundColor="rgba(0,0,0,0.5)"
-          justifyContent="center"
-          alignItems="center"
-          padding={24}
+        <Pressable
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 24,
+          }}
+          onPress={() => setShowMonthPicker(false)}
         >
-          <YStack
-            backgroundColor="$surface"
-            borderRadius={16}
-            width="100%"
-            maxWidth={400}
-          >
-            <MonthPicker
-              selectedMonth={selectedMonth}
-              onSelect={(month) => {
-                setSelectedMonth(month);
-                setShowMonthPicker(false);
-              }}
-            />
-          </YStack>
-        </YStack>
+          <Pressable onPress={() => {}}>
+            <YStack
+              backgroundColor="$surface"
+              borderRadius={16}
+              width="100%"
+              maxWidth={400}
+            >
+              <MonthPicker
+                selectedMonth={selectedMonth}
+                onSelect={(month) => {
+                  setSelectedMonth(month);
+                  setShowMonthPicker(false);
+                }}
+              />
+            </YStack>
+          </Pressable>
+        </Pressable>
       )}
     </YStack>
   );

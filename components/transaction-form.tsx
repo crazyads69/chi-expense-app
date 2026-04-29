@@ -6,7 +6,7 @@ import { Input } from '@/components/input';
 import { Card } from '@/components/card';
 import { useUIStore } from '@/stores/ui';
 
-interface TransactionFormData {
+export interface TransactionFormData {
   amount: string;
   merchant: string;
   category: string;

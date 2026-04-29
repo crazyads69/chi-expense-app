@@ -56,7 +56,8 @@ export async function getWidgetData(): Promise<WidgetData | null> {
   try {
     const raw = await AsyncStorage.getItem(WIDGET_STORAGE_KEY);
     return raw ? JSON.parse(raw) : null;
-  } catch {
+  } catch (err) {
+    console.error('[Widget] Failed to get widget data:', err);
     return null;
   }
 }
@@ -78,7 +79,8 @@ async function updateIOSWidget(data: WidgetData): Promise<void> {
       await reloadAllWidgets();
       return;
     }
-  } catch {
+  } catch (err) {
+    console.warn('[Widget] iOS native module error:', err);
     // Fall through to legacy path
   }
 
@@ -101,7 +103,8 @@ async function updateAndroidWidget(data: WidgetData): Promise<void> {
       await reloadAllWidgets();
       return;
     }
-  } catch {
+  } catch (err) {
+    console.warn('[Widget] Android native module error:', err);
     // Fall through
   }
 

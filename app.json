@@ -36,7 +36,7 @@
         "NSPhotoLibraryUsageDescription": "Chi Expense accesses your photos to let you select receipt images for scanning.",
         "NSPhotoLibraryAddUsageDescription": "Chi Expense saves receipt photos to your library.",
         "NSFaceIDUsageDescription": "Chi Expense uses Face ID to secure your financial data.",
-        "UIBackgroundModes": ["fetch", "remote-notification"]
+        "UIBackgroundModes": ["fetch"]
       }
     },
     "android": {
@@ -66,15 +66,6 @@
         "expo-image-picker",
         {
           "photosPermission": "Chi Expense accesses your photos to let you select receipt screenshots for expense tracking."
-        }
-      ],
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/icon.png",
-          "color": "#ffffff",
-          "defaultChannel": "default",
-          "enableBackgroundRemoteNotifications": false
         }
       ],
       "@react-native-community/datetimepicker",

@@ -15,8 +15,8 @@ const memoryCache: Record<string, string> = {};
       const value = await SecureStore.getItemAsync(key);
       if (value) memoryCache[key] = value;
     }
-  } catch {
-    // Ignore init errors
+  } catch (err) {
+    console.error('[Auth] Failed to load session from SecureStore:', err);
   }
 })();
 
@@ -27,11 +27,15 @@ const storage = {
   setItem: (key: string, value: string): void => {
     memoryCache[key] = value;
     // Async persistence
-    SecureStore.setItemAsync(key, value).catch(() => {});
+    SecureStore.setItemAsync(key, value).catch((err) => {
+      console.error('[Auth] SecureStore setItem failed:', err);
+    });
   },
   removeItem: (key: string): void => {
     delete memoryCache[key];
-    SecureStore.deleteItemAsync(key).catch(() => {});
+    SecureStore.deleteItemAsync(key).catch((err) => {
+      console.error('[Auth] SecureStore deleteItem failed:', err);
+    });
   },
 };
 

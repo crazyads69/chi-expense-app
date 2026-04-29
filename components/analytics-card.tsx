@@ -14,10 +14,10 @@ export function AnalyticsCard({ title, children, empty = false }: AnalyticsCardP
       <Card>
         <YStack alignItems="center" justifyContent="center" padding={48} gap={8}>
           <Text fontSize={16} color="$textSecondary" textAlign="center">
-            Not enough data
+            Your spending story is just beginning
           </Text>
           <Text fontSize={14} color="$textMuted" textAlign="center">
-            Add more expenses to see analytics
+            Add a few expenses and watch your trends emerge
           </Text>
         </YStack>
       </Card>

@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { YStack, Text, XStack, ScrollView, Switch } from 'tamagui';
-import { Alert, Platform, Linking } from 'react-native';
+import { useState } from 'react';
+import { YStack, Text, XStack, ScrollView, Switch, useTheme } from 'tamagui';
+import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button } from '@/components/button';
 import { authService } from '@/services/auth';
@@ -8,20 +8,18 @@ import { api } from '@/services/api';
 import { useAuthStore } from '@/stores/auth';
 import { useThemeStore } from '@/stores/theme';
 import { useUIStore } from '@/stores/ui';
-import { useNotificationStore } from '@/stores/notifications';
-import { notificationService } from '@/services/notifications';
 import { Card } from '@/components/card';
 import { OfflineBanner } from '@/components/offline-banner';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { useBiometric } from '@/hooks/use-biometric';
 import { useSecurityStore } from '@/stores/security';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { Download, Trash2, User, Moon, Bell, Clock, AlertTriangle, Shield } from 'lucide-react-native';
+import { Download, Trash2, User, Moon, Shield } from 'lucide-react-native';
 
 export default function SettingsScreen() {
+  const theme = useTheme();
   const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
-  const { theme, followSystem, setTheme, setFollowSystem } = useThemeStore();
+  const { theme: activeTheme, followSystem, setTheme, setFollowSystem } = useThemeStore();
   const { showToast } = useUIStore();
   const { isOffline } = useNetworkStatus();
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -30,66 +28,6 @@ export default function SettingsScreen() {
 
   const { isAvailable, biometryType, isEnabled, enable, disable, isLoading: biometricLoading } = useBiometric();
   const { lockTimeout, setLockTimeout } = useSecurityStore();
-
-  const { preferences, setPreferences } = useNotificationStore();
-  const [isLoadingPrefs, setIsLoadingPrefs] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
-  const [permissionStatus, setPermissionStatus] = useState<{ granted: boolean; canAskAgain: boolean }>({
-    granted: false,
-    canAskAgain: true,
-  });
-
-  useEffect(() => {
-    if (!isAuthenticated) return;
-
-    const loadPreferences = async () => {
-      setIsLoadingPrefs(true);
-      const status = await notificationService.getPermissionsStatus();
-      setPermissionStatus(status);
-
-      const prefs = await notificationService.fetchPreferences();
-      if (prefs) {
-        setPreferences(prefs);
-      }
-      setIsLoadingPrefs(false);
-    };
-
-    loadPreferences();
-  }, [isAuthenticated]);
-
-  const handleRequestPermission = async () => {
-    if (!permissionStatus.canAskAgain && !permissionStatus.granted) {
-      Linking.openSettings();
-      return;
-    }
-
-    const { granted, canAskAgain } = await notificationService.requestPermissions();
-    setPermissionStatus({ granted, canAskAgain });
-
-    if (granted) {
-      const token = await notificationService.registerPushTokenAsync();
-      if (token) {
-        await notificationService.registerTokenWithBackend(token, Platform.OS);
-      }
-    }
-  };
-
-  const handleUpdatePreference = async (update: Partial<typeof preferences>) => {
-    setPreferences(update);
-    const success = await notificationService.updatePreferences(update);
-    if (!success) {
-      showToast('Failed to save preferences', 'error');
-    }
-  };
-
-  const onTimeChange = (event: any, selectedDate?: Date) => {
-    setShowTimePicker(false);
-    if (selectedDate) {
-      const hours = selectedDate.getHours().toString().padStart(2, '0');
-      const minutes = selectedDate.getMinutes().toString().padStart(2, '0');
-      handleUpdatePreference({ dailySummaryTime: `${hours}:${minutes}` });
-    }
-  };
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
@@ -109,7 +47,8 @@ export default function SettingsScreen() {
       const response = await api.get('/account/export');
       showToast('Data exported successfully', 'success');
       // In a real app, you would share/save the file here
-    } catch {
+    } catch (err) {
+      console.error('[Settings] Export failed:', err);
       showToast('Failed to export data', 'error');
     } finally {
       setIsExporting(false);
@@ -137,7 +76,8 @@ export default function SettingsScreen() {
               await authService.signOut();
               showToast('Account deleted', 'success');
               router.replace('/login');
-            } catch {
+            } catch (err) {
+              console.error('[Settings] Delete account failed:', err);
               showToast('Failed to delete account', 'error');
               setIsDeleting(false);
             }
@@ -161,7 +101,7 @@ export default function SettingsScreen() {
             <Card>
               <YStack gap={8}>
                 <XStack alignItems="center" gap={8}>
-                  <User size={20} color="#2563EB" />
+                  <User size={20} color={theme.primary.val} />
                   <Text fontSize={16} fontWeight="600" color="$textPrimary">
                     {user.name}
                   </Text>
@@ -176,135 +116,7 @@ export default function SettingsScreen() {
           <Card>
             <YStack gap={16}>
               <XStack alignItems="center" gap={8}>
-                <Bell size={20} color="#2563EB" />
-                <Text fontSize={16} fontWeight="600" color="$textPrimary">
-                  Notifications
-                </Text>
-              </XStack>
-
-              {!permissionStatus.granted && (
-                <YStack gap={8}>
-                  <Text fontSize={14} color="$textSecondary">
-                    Enable push notifications to receive budget alerts and daily summaries.
-                  </Text>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onPress={handleRequestPermission}
-                    disabled={isLoadingPrefs}
-                  >
-                    {permissionStatus.canAskAgain ? 'Enable Notifications' : 'Open Settings'}
-                  </Button>
-                </YStack>
-              )}
-
-              {permissionStatus.granted && (
-                <YStack gap={16}>
-                  <XStack justifyContent="space-between" alignItems="center">
-                    <YStack>
-                      <Text fontSize={14} color="$textPrimary">
-                        Daily Summary
-                      </Text>
-                      <Text fontSize={12} color="$textMuted">
-                        {preferences.dailySummaryTime}
-                      </Text>
-                    </YStack>
-                    <Switch
-                      checked={preferences.dailySummaryEnabled}
-                      onCheckedChange={(checked) =>
-                        handleUpdatePreference({ dailySummaryEnabled: checked })
-                      }
-                      backgroundColor={preferences.dailySummaryEnabled ? '$primary' : '$surface'}
-                    />
-                  </XStack>
-
-                  {preferences.dailySummaryEnabled && (
-                    <XStack justifyContent="space-between" alignItems="center">
-                      <XStack alignItems="center" gap={8}>
-                        <Clock size={16} color="$textSecondary" />
-                        <Text fontSize={14} color="$textSecondary">
-                          Time
-                        </Text>
-                      </XStack>
-                      <Button variant="outline" size="sm" onPress={() => setShowTimePicker(true)}>
-                        {preferences.dailySummaryTime}
-                      </Button>
-                    </XStack>
-                  )}
-
-                  {showTimePicker && (
-                    <DateTimePicker
-                      value={new Date(`2000-01-01T${preferences.dailySummaryTime}:00`)}
-                      mode="time"
-                      display="default"
-                      onChange={onTimeChange}
-                    />
-                  )}
-
-                  <XStack justifyContent="space-between" alignItems="center">
-                    <YStack>
-                      <Text fontSize={14} color="$textPrimary">
-                        Budget Alerts
-                      </Text>
-                      <Text fontSize={12} color="$textMuted">
-                        At {preferences.budgetThreshold}% of budget
-                      </Text>
-                    </YStack>
-                    <Switch
-                      checked={preferences.budgetAlertsEnabled}
-                      onCheckedChange={(checked) =>
-                        handleUpdatePreference({ budgetAlertsEnabled: checked })
-                      }
-                      backgroundColor={preferences.budgetAlertsEnabled ? '$primary' : '$surface'}
-                    />
-                  </XStack>
-
-                  {preferences.budgetAlertsEnabled && (
-                    <XStack justifyContent="space-between" alignItems="center">
-                      <XStack alignItems="center" gap={8}>
-                        <AlertTriangle size={16} color="$textSecondary" />
-                        <Text fontSize={14} color="$textSecondary">
-                          Threshold
-                        </Text>
-                      </XStack>
-                      <XStack alignItems="center" gap={12}>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onPress={() =>
-                            handleUpdatePreference({
-                              budgetThreshold: Math.max(1, preferences.budgetThreshold - 5),
-                            })
-                          }
-                        >
-                          -
-                        </Button>
-                        <Text fontSize={16} fontWeight="600">
-                          {preferences.budgetThreshold}%
-                        </Text>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onPress={() =>
-                            handleUpdatePreference({
-                              budgetThreshold: Math.min(100, preferences.budgetThreshold + 5),
-                            })
-                          }
-                        >
-                          +
-                        </Button>
-                      </XStack>
-                    </XStack>
-                  )}
-                </YStack>
-              )}
-            </YStack>
-          </Card>
-
-          <Card>
-            <YStack gap={16}>
-              <XStack alignItems="center" gap={8}>
-                <Moon size={20} color="#2563EB" />
+                <Moon size={20} color={theme.primary.val} />
                 <Text fontSize={16} fontWeight="600" color="$textPrimary">
                   Appearance
                 </Text>
@@ -327,9 +139,9 @@ export default function SettingsScreen() {
                     Dark Mode
                   </Text>
                   <Switch
-                    checked={theme === 'dark'}
+                    checked={activeTheme === 'dark'}
                     onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
-                    backgroundColor={theme === 'dark' ? '$primary' : '$surface'}
+                    backgroundColor={activeTheme === 'dark' ? '$primary' : '$surface'}
                   />
                 </XStack>
               )}
@@ -341,7 +153,7 @@ export default function SettingsScreen() {
               <Card>
                 <YStack gap={16}>
                   <XStack alignItems="center" gap={8}>
-                    <Shield size={20} color="#2563EB" />
+                    <Shield size={20} color={theme.primary.val} />
                     <Text fontSize={16} fontWeight="600" color="$textPrimary">
                       Security
                     </Text>
@@ -418,7 +230,7 @@ export default function SettingsScreen() {
                     disabled={isOffline}
                   >
                     <XStack alignItems="center" gap={8}>
-                      <Download size={16} color="#2563EB" />
+                      <Download size={16} color={theme.primary.val} />
                       <Text>Export Data</Text>
                     </XStack>
                   </Button>
@@ -438,8 +250,8 @@ export default function SettingsScreen() {
                     disabled={isOffline}
                   >
                     <XStack alignItems="center" gap={8}>
-                      <Trash2 size={16} color="#EF4444" />
-                      <Text color="#EF4444">Delete Account</Text>
+                      <Trash2 size={16} color={theme.error.val} />
+                      <Text color={theme.error.val}>Delete Account</Text>
                     </XStack>
                   </Button>
                 </YStack>

@@ -14,7 +14,7 @@ export function ImagePickerButton({
   selectedUri,
   onSelect,
   onClear,
-  label = 'Add receipt',
+  label = 'Tap to add receipt',
 }: ImagePickerButtonProps) {
   const theme = useTheme();
   const hasImage = !!selectedUri;
@@ -24,13 +24,14 @@ export function ImagePickerButton({
       <YStack
         width={120}
         height={120}
-        backgroundColor="$surface"
-        borderWidth={1}
-        borderColor="$border"
-        borderRadius={8}
+        backgroundColor={hasImage ? '$surface' : 'transparent'}
+        borderWidth={hasImage ? 1 : 2}
+        borderColor={hasImage ? '$border' : '$primary'}
+        borderRadius={12}
         justifyContent="center"
         alignItems="center"
         overflow="hidden"
+        style={!hasImage ? { borderStyle: 'dashed' } : undefined}
       >
         {hasImage ? (
           <>
@@ -62,9 +63,9 @@ export function ImagePickerButton({
             </Pressable>
           </>
         ) : (
-          <YStack justifyContent="center" alignItems="center" gap={8}>
-            <ImagePlus size={48} stroke={theme.textMuted?.val || '#999999'} />
-            <Text fontSize={12} color="$textMuted" textAlign="center">
+          <YStack justifyContent="center" alignItems="center" gap={8} padding={8}>
+            <ImagePlus size={32} stroke={theme.primary?.val || '#0D9488'} />
+            <Text fontSize={11} color="$primary" textAlign="center" fontWeight="500">
               {label}
             </Text>
           </YStack>

@@ -1,11 +1,11 @@
 import { useState, useCallback } from 'react';
-import { YStack, Text, XStack, ScrollView } from 'tamagui';
+import { YStack, Text, XStack, ScrollView, useTheme } from 'tamagui';
 import { api } from '@/services/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { SkeletonCard } from '@/components/skeleton';
-import { TransactionForm } from '@/components/transaction-form';
+import { TransactionForm, type TransactionFormData } from '@/components/transaction-form';
 import { MonthPicker } from '@/components/month-picker';
 import { SearchBar } from '@/components/search-bar';
 import { FilterSheet } from '@/components/filter-sheet';
@@ -36,7 +36,15 @@ interface TransactionsResponse {
   };
 }
 
+interface TransactionUpdatePayload {
+  amount: number;
+  merchant: string;
+  category: string;
+  date: string;
+}
+
 export default function TransactionsScreen() {
+  const theme = useTheme();
   const queryClient = useQueryClient();
   const { showToast } = useUIStore();
   const { isOffline } = useNetworkStatus();
@@ -112,7 +120,7 @@ export default function TransactionsScreen() {
   });
 
   const editMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+    mutationFn: async ({ id, data }: { id: string; data: Partial<TransactionUpdatePayload> }) => {
       await api.patch(`/transactions/${id}`, data);
     },
     onSuccess: () => {
@@ -144,7 +152,7 @@ export default function TransactionsScreen() {
     setEditingTransaction(transaction);
   }, []);
 
-  const handleUpdate = (formData: any) => {
+  const handleUpdate = (formData: TransactionFormData) => {
     if (!editingTransaction) return;
     editMutation.mutate({
       id: editingTransaction.id,
@@ -182,7 +190,7 @@ export default function TransactionsScreen() {
             size="sm"
             onPress={() => setShowMonthPicker(true)}
           >
-            <Calendar size={16} color="#2563EB" />
+            <Calendar size={16} color={theme.primary.val} />
           </Button>
         </XStack>
         <Text fontSize={14} color="$textSecondary" marginTop={4}>
@@ -204,7 +212,7 @@ export default function TransactionsScreen() {
             onPress={() => setShowFilterSheet(true)}
           >
             <XStack alignItems="center" gap={4}>
-              <SlidersHorizontal size={16} color="#2563EB" />
+              <SlidersHorizontal size={16} color={theme.primary.val} />
               <Text>Filters</Text>
               {activeFilterCount > 0 && (
                 <YStack
@@ -263,7 +271,11 @@ export default function TransactionsScreen() {
             ) : (
               <>
                 {displayTransactions.map((transaction) => (
-                  <Card key={transaction.id} variant="interactive">
+                  <Card
+                    key={transaction.id}
+                    variant="interactive"
+                    onLongPress={() => handleDelete(transaction.id)}
+                  >
                     <XStack justifyContent="space-between" alignItems="center">
                       <YStack flex={1} gap={4}>
                         <Text fontSize={16} fontWeight="600" color="$textPrimary">
@@ -288,14 +300,14 @@ export default function TransactionsScreen() {
                             padding={8}
                             pressStyle={{ opacity: 0.7 }}
                           >
-                            <Pencil size={16} color="#666666" />
+                            <Pencil size={16} color={theme.textSecondary.val} />
                           </YStack>
                           <YStack
                             onPress={() => handleDelete(transaction.id)}
                             padding={8}
                             pressStyle={{ opacity: 0.7 }}
                           >
-                            <Trash2 size={16} color="#EF4444" />
+                            <Trash2 size={16} color={theme.error.val} />
                           </YStack>
                         </XStack>
                       </YStack>

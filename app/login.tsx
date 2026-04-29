@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { YStack, Text } from 'tamagui';
 import { useRouter } from 'expo-router';
-import { Github, Apple } from 'lucide-react-native';
+import { Github, Apple, Wallet } from 'lucide-react-native';
 import { Button } from '@/components/button';
 import { authService } from '@/services/auth';
 import { useAuthStore } from '@/stores/auth';
@@ -54,15 +54,33 @@ export default function LoginScreen() {
       justifyContent="center"
       alignItems="center"
       backgroundColor="$background"
-      padding={24}
-      gap={24}
+      padding={40}
+      gap={40}
     >
-      <YStack gap={8} alignItems="center">
-        <Text fontSize={28} fontWeight="600" color="$textPrimary" textAlign="center">
+      {/* Logo mark */}
+      <YStack
+        width={80}
+        height={80}
+        borderRadius={40}
+        backgroundColor="$primaryMuted"
+        justifyContent="center"
+        alignItems="center"
+      >
+        <Wallet size={36} color={theme.primary.val} />
+      </YStack>
+
+      <YStack gap={12} alignItems="center">
+        <Text
+          fontSize={40}
+          fontWeight="600"
+          color="$textPrimary"
+          textAlign="center"
+          letterSpacing={-0.5}
+        >
           Chi Expense
         </Text>
-        <Text fontSize={14} color="$textSecondary" textAlign="center">
-          Log expenses in under 2 seconds
+        <Text fontSize={16} color="$textSecondary" textAlign="center" maxWidth={260}>
+          Track spending without thinking about it
         </Text>
       </YStack>
 

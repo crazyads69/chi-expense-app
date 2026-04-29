@@ -60,6 +60,42 @@ async function apiRequest<T>(
   return { data, status: response.status };
 }
 
+async function apiMultipartRequest<T>(
+  endpoint: string,
+  formData: FormData
+): Promise<ApiResponse<T>> {
+  const token = await getAuthToken();
+  const url = `${config.getBaseUrl()}${endpoint}`;
+
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+
+  if (response.status === 401) {
+    await secureStorage.removeItem('auth-token');
+    throw new ApiError(401, 'Session expired. Please sign in again.');
+  }
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new ApiError(
+      response.status,
+      errorData.message || 'Something went wrong',
+      errorData
+    );
+  }
+
+  const data = await response.json();
+  return { data, status: response.status };
+}
+
 export const api = {
   get: <T>(endpoint: string) => apiRequest<T>(endpoint, { method: 'GET' }),
   post: <T>(endpoint: string, body: unknown) =>
@@ -67,6 +103,8 @@ export const api = {
   patch: <T>(endpoint: string, body: unknown) =>
     apiRequest<T>(endpoint, { method: 'PATCH', body: JSON.stringify(body) }),
   delete: <T>(endpoint: string) => apiRequest<T>(endpoint, { method: 'DELETE' }),
+  postMultipart: <T>(endpoint: string, formData: FormData) =>
+    apiMultipartRequest<T>(endpoint, formData),
 };
 
 export { ApiError };

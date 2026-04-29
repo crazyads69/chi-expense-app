@@ -1,5 +1,6 @@
 import { YStack, Text, XStack } from 'tamagui';
 import { useTheme } from 'tamagui';
+import { Pressable } from 'react-native';
 import { Button } from './button';
 import { FilterChips } from './filter-chips';
 import { AmountRangeSlider } from './amount-range-slider';
@@ -33,24 +34,28 @@ export function FilterSheet({
   if (!visible) return null;
 
   return (
-    <YStack
-      position="absolute"
-      top={0}
-      left={0}
-      right={0}
-      bottom={0}
-      backgroundColor="rgba(0,0,0,0.5)"
-      justifyContent="flex-end"
-      zIndex={999}
+    <Pressable
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'flex-end',
+        zIndex: 999,
+      }}
+      onPress={onClose}
     >
-      <YStack
-        backgroundColor="background"
-        borderTopLeftRadius={24}
-        borderTopRightRadius={24}
-        padding={24}
-        gap={16}
-        maxHeight="80%"
-      >
+      <Pressable onPress={() => {}}>
+        <YStack
+          backgroundColor="background"
+          borderTopLeftRadius={24}
+          borderTopRightRadius={24}
+          padding={24}
+          gap={16}
+          maxHeight="80%"
+        >
         <XStack justifyContent="space-between" alignItems="center">
           <Text fontSize={18} fontWeight="600" color="textPrimary">
             Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
@@ -87,7 +92,8 @@ export function FilterSheet({
             </Button>
           </YStack>
         </XStack>
-      </YStack>
-    </YStack>
+        </YStack>
+      </Pressable>
+    </Pressable>
   );
 }

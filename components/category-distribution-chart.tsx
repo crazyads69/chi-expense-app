@@ -87,6 +87,8 @@ export function CategoryDistributionChart({ data, currency = 'VND' }: CategoryDi
           sectionAutoFocus
           strokeWidth={2}
           strokeColor={theme.textInverse?.val || '#FFFFFF'}
+          isAnimated
+          animationDuration={1000}
         />
       </YStack>
 

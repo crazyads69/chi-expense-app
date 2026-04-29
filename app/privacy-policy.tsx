@@ -16,7 +16,6 @@ export default function PrivacyPolicyScreen() {
             items={[
               'Account information (email, name) via Better Auth authentication',
               'Expense data (amount, merchant, category, date, receipt images)',
-              'Device information for push notifications (push token)',
               'Usage analytics for app improvement',
             ]}
           />
@@ -30,7 +29,6 @@ export default function PrivacyPolicyScreen() {
             items={[
               'Process and store your expense records',
               'Provide AI-powered receipt scanning via OpenAI API',
-              'Send spending summary notifications (if enabled)',
               'Improve app functionality and user experience',
             ]}
           />

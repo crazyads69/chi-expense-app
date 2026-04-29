@@ -28,10 +28,10 @@ export function SpendingTrendChart({ data, currency = 'VND' }: SpendingTrendChar
     return (
       <YStack alignItems="center" justifyContent="center" padding={48}>
         <Text fontSize={16} color="$textSecondary" textAlign="center">
-          Not enough data for trends
+          Your spending story is just beginning
         </Text>
         <Text fontSize={14} color="$textMuted" textAlign="center" marginTop={8}>
-          Add more expenses to see your spending trends
+          Add a few expenses and watch your trends emerge
         </Text>
       </YStack>
     );
@@ -96,6 +96,8 @@ export function SpendingTrendChart({ data, currency = 'VND' }: SpendingTrendChar
         stripColor={stripColor}
         stripWidth={2}
         stripHeight={200}
+        isAnimated
+        animationDuration={1200}
       />
 
       {selectedPoint && (

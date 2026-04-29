@@ -43,13 +43,13 @@ export const useAuthStore = create<AuthState>()(
       setLoading: (isLoading) => set({ isLoading }),
       logout: async () => {
         await secureStorage.removeItem('auth-token');
-        await AsyncStorage.removeItem('user-profile');
+        await secureStorage.removeItem('user-profile');
         set({ user: null, isAuthenticated: false });
       },
     }),
     {
       name: 'auth-storage',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => secureStorage),
       partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
     }
   )

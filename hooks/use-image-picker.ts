@@ -50,7 +50,8 @@ export function useImagePicker(): UseImagePickerReturn {
         uri: resizedUri,
       });
       setError(null);
-    } catch {
+    } catch (err) {
+      console.error('[ImagePicker] Resize failed:', err);
       setError('Failed to process image');
     }
   }, []);

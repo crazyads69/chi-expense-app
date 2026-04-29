@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { YStack, Text, XStack, ScrollView } from 'tamagui';
+import { YStack, Text, XStack, ScrollView, useTheme } from 'tamagui';
+import { Pressable } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/services/api';
 import { Button } from '@/components/button';
@@ -17,6 +18,7 @@ interface Category {
 }
 
 export default function CategoriesScreen() {
+  const theme = useTheme();
   const queryClient = useQueryClient();
   const { showToast } = useUIStore();
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -62,7 +64,7 @@ export default function CategoriesScreen() {
             size="sm"
             onPress={() => setIsModalVisible(true)}
           >
-            <Plus size={16} color="#2563EB" />
+            <Plus size={16} color={theme.primary.val} />
           </Button>
         </XStack>
       </YStack>
@@ -78,17 +80,17 @@ export default function CategoriesScreen() {
             {categories?.length === 0 ? (
               <YStack alignItems="center" gap={16} paddingVertical={48}>
                 <Text fontSize={16} fontWeight="600" color="$textPrimary" textAlign="center">
-                  No categories
+                  No categories yet
                 </Text>
                 <Text fontSize={14} color="$textSecondary" textAlign="center">
-                  Categories will appear when you create your first one.
+                  Create your first category to organize your spending.
                 </Text>
               </YStack>
             ) : (
               categories?.map((category) => (
                 <Card key={category.id} variant="compact">
                   <XStack alignItems="center" gap={12}>
-                    <Tag size={20} color="#2563EB" />
+                    <Tag size={20} color={theme.primary.val} />
                     <Text fontSize={16} color="$textPrimary">
                       {category.name}
                     </Text>
@@ -102,25 +104,29 @@ export default function CategoriesScreen() {
 
       {/* Create Category Modal */}
       {isModalVisible && (
-        <YStack
-          position="absolute"
-          top={0}
-          left={0}
-          right={0}
-          bottom={0}
-          backgroundColor="rgba(0,0,0,0.5)"
-          justifyContent="center"
-          alignItems="center"
-          padding={24}
+        <Pressable
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 24,
+          }}
+          onPress={() => setIsModalVisible(false)}
         >
-          <YStack
-            backgroundColor="$surface"
-            borderRadius={16}
-            padding={24}
-            width="100%"
-            maxWidth={400}
-            gap={16}
-          >
+          <Pressable onPress={() => {}}>
+            <YStack
+              backgroundColor="$surface"
+              borderRadius={16}
+              padding={24}
+              width="100%"
+              maxWidth={400}
+              gap={16}
+            >
             <Text fontSize={18} fontWeight="600" color="$textPrimary">
               New Category
             </Text>
@@ -147,8 +153,9 @@ export default function CategoriesScreen() {
                 Create
               </Button>
             </XStack>
-          </YStack>
-        </YStack>
+            </YStack>
+          </Pressable>
+        </Pressable>
       )}
     </YStack>
   );

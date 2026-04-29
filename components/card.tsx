@@ -5,11 +5,12 @@ interface CardProps {
   children: ReactNode;
   variant?: 'default' | 'compact' | 'interactive';
   onPress?: () => void;
+  onLongPress?: () => void;
 }
 
-export function Card({ children, variant = 'default', onPress }: CardProps) {
+export function Card({ children, variant = 'default', onPress, onLongPress }: CardProps) {
   const isCompact = variant === 'compact';
-  const isInteractive = variant === 'interactive' || !!onPress;
+  const isInteractive = variant === 'interactive' || !!onPress || !!onLongPress;
 
   return (
     <YStack
@@ -21,6 +22,7 @@ export function Card({ children, variant = 'default', onPress }: CardProps) {
       {...(isInteractive && {
         pressStyle: { scale: 0.985, backgroundColor: '$surfaceElevated' },
         onPress,
+        onLongPress,
         animation: 'quick',
       })}
     >
