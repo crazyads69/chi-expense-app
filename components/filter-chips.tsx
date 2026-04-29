@@ -1,6 +1,7 @@
 import { YStack, XStack, Text } from 'tamagui';
 import { Pressable } from 'react-native';
 import { ScrollView } from 'react-native';
+import { useTheme } from 'tamagui';
 
 interface FilterOption {
   label: string;
@@ -21,6 +22,8 @@ export function FilterChips({
   onSelect,
   title,
 }: FilterChipsProps) {
+  const theme = useTheme();
+
   const toggleValue = (value: string) => {
     if (selected.includes(value)) {
       onSelect(selected.filter((v) => v !== value));
@@ -52,14 +55,18 @@ export function FilterChips({
                   paddingHorizontal: 12,
                   paddingVertical: 6,
                   borderRadius: 16,
-                  backgroundColor: isSelected ? '#2563EB' : '#F5F5F5',
+                  backgroundColor: isSelected
+                    ? theme.primary?.val || '#2563EB'
+                    : theme.surface?.val || '#F5F5F5',
                   borderWidth: 1,
-                  borderColor: isSelected ? '#2563EB' : '#E5E5E5',
+                  borderColor: isSelected
+                    ? theme.primary?.val || '#2563EB'
+                    : theme.border?.val || '#E5E5E5',
                 }}
               >
                 <Text
                   fontSize={14}
-                  color={isSelected ? '#FFFFFF' : '#666666'}
+                  color={isSelected ? theme.textInverse?.val || '#FFFFFF' : theme.textSecondary?.val || '#666666'}
                   fontWeight={isSelected ? '600' : '400'}
                 >
                   {option.label}

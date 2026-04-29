@@ -1,4 +1,5 @@
 import { YStack, Text } from 'tamagui';
+import { useTheme } from 'tamagui';
 import { Button } from '@/components/button';
 import { Fingerprint, ScanFace } from 'lucide-react-native';
 
@@ -10,9 +11,11 @@ interface BiometricPromptProps {
 }
 
 export function BiometricPrompt({ biometryType, onAuthenticate, onCancel, error }: BiometricPromptProps) {
+  const theme = useTheme();
+  const iconColor = theme.primary?.val || '#2563EB';
   const icon = biometryType === 'facial'
-    ? <ScanFace size={48} color="#2563EB" />
-    : <Fingerprint size={48} color="#2563EB" />;
+    ? <ScanFace size={48} color={iconColor} />
+    : <Fingerprint size={48} color={iconColor} />;
   const label = biometryType === 'facial' ? 'Face ID' : 'Fingerprint';
 
   return (

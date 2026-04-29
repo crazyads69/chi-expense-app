@@ -9,6 +9,12 @@ interface TrendDataPoint {
   amount: number;
 }
 
+interface ChartDataPoint {
+  value: number;
+  label: string;
+  dataPointText?: string;
+}
+
 interface SpendingTrendChartProps {
   data: TrendDataPoint[];
   currency?: string;
@@ -40,9 +46,20 @@ export function SpendingTrendChart({ data, currency = 'VND' }: SpendingTrendChar
   const maxValue = Math.max(...data.map((d) => d.amount));
   const yAxisMax = Math.ceil(maxValue / 1000000) * 1000000;
 
-  const textColor = theme.textPrimary?.val || '#111111';
-  const lineColor = '#2563EB';
-  const fillColor = 'rgba(37, 99, 235, 0.1)';
+  const textColor = theme.textPrimary?.val;
+  const lineColor = theme.primary?.val || '#2563EB';
+  const fillColor = theme.primary?.val
+    ? `${theme.primary.val}1A`
+    : 'rgba(37, 99, 235, 0.1)';
+  const endFillColor = theme.primary?.val
+    ? `${theme.primary.val}00`
+    : 'rgba(37, 99, 235, 0)';
+  const verticalLinesColor = theme.textPrimary?.val
+    ? `${theme.textPrimary.val}1A`
+    : 'rgba(0,0,0,0.1)';
+  const stripColor = theme.primary?.val
+    ? `${theme.primary.val}33`
+    : 'rgba(37, 99, 235, 0.2)';
 
   return (
     <YStack gap={16}>
@@ -63,20 +80,20 @@ export function SpendingTrendChart({ data, currency = 'VND' }: SpendingTrendChar
         textColor={textColor}
         color={lineColor}
         startFillColor={fillColor}
-        endFillColor="rgba(37, 99, 235, 0)"
+        endFillColor={endFillColor}
         startOpacity={0.3}
         endOpacity={0.05}
         thickness={2}
         dataPointsColor={lineColor}
         dataPointsRadius={4}
         showVerticalLines
-        verticalLinesColor="rgba(0,0,0,0.1)"
+        verticalLinesColor={verticalLinesColor}
         focusEnabled
-        onFocus={(item: any) => {
+        onFocus={(item: ChartDataPoint) => {
           const point = data.find((d) => d.month === item.label);
           if (point) setSelectedPoint(point);
         }}
-        stripColor="rgba(37, 99, 235, 0.2)"
+        stripColor={stripColor}
         stripWidth={2}
         stripHeight={200}
       />

@@ -1,6 +1,7 @@
 import { YStack, Text } from 'tamagui';
 import { ImagePlus, X } from 'lucide-react-native';
 import { Image, Pressable } from 'react-native';
+import { useTheme } from 'tamagui';
 
 interface ImagePickerButtonProps {
   selectedUri?: string | null;
@@ -15,6 +16,7 @@ export function ImagePickerButton({
   onClear,
   label = 'Add receipt',
 }: ImagePickerButtonProps) {
+  const theme = useTheme();
   const hasImage = !!selectedUri;
 
   return (
@@ -46,22 +48,22 @@ export function ImagePickerButton({
                 width: 28,
                 height: 28,
                 borderRadius: 14,
-                backgroundColor: 'white',
+                backgroundColor: theme.textInverse?.val || '#FFFFFF',
                 justifyContent: 'center',
                 alignItems: 'center',
-                shadowColor: '#000',
+                shadowColor: theme.textPrimary?.val || '#000000',
                 shadowOffset: { width: 0, height: 1 },
                 shadowOpacity: 0.2,
                 shadowRadius: 2,
                 elevation: 2,
               }}
             >
-              <X size={16} stroke="#111111" />
+              <X size={16} stroke={theme.textPrimary?.val || '#111111'} />
             </Pressable>
           </>
         ) : (
           <YStack justifyContent="center" alignItems="center" gap={8}>
-            <ImagePlus size={48} stroke="#999999" />
+            <ImagePlus size={48} stroke={theme.textMuted?.val || '#999999'} />
             <Text fontSize={12} color="$textMuted" textAlign="center">
               {label}
             </Text>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { YStack, Text, XStack, ScrollView } from 'tamagui';
 import { Pressable } from 'react-native';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { useTheme } from 'tamagui';
 import { Button } from './button';
 
 interface MonthPickerProps {
@@ -10,6 +11,7 @@ interface MonthPickerProps {
 }
 
 export function MonthPicker({ selectedMonth, onSelect }: MonthPickerProps) {
+  const theme = useTheme();
   const [year, setYear] = useState(parseInt(selectedMonth.split('-')[0]));
   const [month, setMonth] = useState(parseInt(selectedMonth.split('-')[1]));
 
@@ -30,13 +32,13 @@ export function MonthPicker({ selectedMonth, onSelect }: MonthPickerProps) {
     <YStack gap={16} padding={16}>
       <XStack justifyContent="space-between" alignItems="center">
         <Pressable onPress={handlePrevYear}>
-          <ChevronLeft size={24} color="#666666" />
+          <ChevronLeft size={24} color={theme.textSecondary?.val || '#666666'} />
         </Pressable>
         <Text fontSize={18} fontWeight="600" color="$textPrimary">
           {year}
         </Text>
         <Pressable onPress={handleNextYear}>
-          <ChevronRight size={24} color="#666666" />
+          <ChevronRight size={24} color={theme.textSecondary?.val || '#666666'} />
         </Pressable>
       </XStack>
 
@@ -55,14 +57,16 @@ export function MonthPicker({ selectedMonth, onSelect }: MonthPickerProps) {
                 width: '30%',
                 paddingVertical: 12,
                 borderRadius: 8,
-                backgroundColor: isSelected ? '#2563EB' : '#F5F5F5',
+                backgroundColor: isSelected
+                  ? theme.primary?.val || '#2563EB'
+                  : theme.surface?.val || '#F5F5F5',
                 alignItems: 'center',
               }}
             >
               <Text
                 fontSize={14}
                 fontWeight={isSelected ? '600' : '400'}
-                color={isSelected ? '#FFFFFF' : '#111111'}
+                color={isSelected ? theme.textInverse?.val || '#FFFFFF' : theme.textPrimary?.val || '#111111'}
               >
                 {name}
               </Text>

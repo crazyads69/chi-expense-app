@@ -1,4 +1,5 @@
 import { YStack, Text, XStack } from 'tamagui';
+import { useTheme } from 'tamagui';
 import { Button } from './button';
 import { FilterChips } from './filter-chips';
 import { AmountRangeSlider } from './amount-range-slider';
@@ -27,6 +28,8 @@ export function FilterSheet({
   onReset,
   activeFilterCount,
 }: FilterSheetProps) {
+  const theme = useTheme();
+
   if (!visible) return null;
 
   return (
@@ -53,7 +56,7 @@ export function FilterSheet({
             Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
           </Text>
           <Button variant="ghost" size="sm" onPress={onClose}>
-            <X size={24} color="#666666" />
+            <X size={24} color={theme.textSecondary?.val || '#666666'} />
           </Button>
         </XStack>
 

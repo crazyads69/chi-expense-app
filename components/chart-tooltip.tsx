@@ -1,6 +1,7 @@
 import { YStack, Text, XStack } from 'tamagui';
 import { X } from 'lucide-react-native';
 import { Pressable } from 'react-native';
+import { useTheme } from 'tamagui';
 
 interface ChartTooltipProps {
   label: string;
@@ -9,6 +10,8 @@ interface ChartTooltipProps {
 }
 
 export function ChartTooltip({ label, value, onClose }: ChartTooltipProps) {
+  const theme = useTheme();
+
   return (
     <YStack
       backgroundColor="$surfaceElevated"
@@ -25,7 +28,7 @@ export function ChartTooltip({ label, value, onClose }: ChartTooltipProps) {
           {label}
         </Text>
         <Pressable onPress={onClose} style={{ padding: 4 }}>
-          <X size={16} color="#666666" />
+          <X size={16} color={theme.textSecondary?.val || '#666666'} />
         </Pressable>
       </XStack>
       <Text fontSize={16} fontWeight="600" color="$primary">

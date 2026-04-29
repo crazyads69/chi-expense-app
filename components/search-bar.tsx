@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { YStack, Input } from 'tamagui';
 import { Search, X } from 'lucide-react-native';
+import { useTheme } from 'tamagui';
 
 interface SearchBarProps {
   value: string;
@@ -15,6 +16,7 @@ export function SearchBar({
   placeholder = 'Search transactions...',
   debounceMs = 300,
 }: SearchBarProps) {
+  const theme = useTheme();
   const [localValue, setLocalValue] = useState(value);
 
   useEffect(() => {
@@ -50,7 +52,7 @@ export function SearchBar({
       />
       <Search
         size={20}
-        color="#999999"
+        color={theme.textMuted?.val || '#999999'}
         style={{ position: 'absolute', left: 12, top: 14 }}
       />
       {localValue && (
@@ -61,7 +63,7 @@ export function SearchBar({
           top={12}
           padding={4}
         >
-          <X size={16} color="#999999" />
+          <X size={16} color={theme.textMuted?.val || '#999999'} />
         </YStack>
       )}
     </YStack>

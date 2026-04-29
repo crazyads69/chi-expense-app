@@ -10,25 +10,35 @@ interface CategoryData {
   percentage: number;
 }
 
+interface PieChartItem {
+  value: number;
+  color: string;
+  text: string;
+  textColor: string;
+  fontSize: number;
+  label: string;
+  focused: boolean;
+}
+
 interface CategoryDistributionChartProps {
   data: CategoryData[];
   currency?: string;
 }
 
-const CHART_COLORS = [
-  '#2563EB', // Blue
-  '#10B981', // Green
-  '#F59E0B', // Yellow
-  '#EF4444', // Red
-  '#8B5CF6', // Purple
-  '#EC4899', // Pink
-  '#06B6D4', // Cyan
-  '#84CC16', // Lime
-];
-
 export function CategoryDistributionChart({ data, currency = 'VND' }: CategoryDistributionChartProps) {
   const theme = useTheme();
   const [selectedSlice, setSelectedSlice] = useState<CategoryData | null>(null);
+
+  const CHART_COLORS = [
+    theme.chart1?.val || '#2563EB',
+    theme.chart2?.val || '#10B981',
+    theme.chart3?.val || '#F59E0B',
+    theme.chart4?.val || '#EF4444',
+    theme.chart5?.val || '#8B5CF6',
+    theme.chart6?.val || '#EC4899',
+    theme.chart7?.val || '#06B6D4',
+    theme.chart8?.val || '#84CC16',
+  ];
 
   if (!data || data.length === 0) {
     return (
@@ -47,13 +57,13 @@ export function CategoryDistributionChart({ data, currency = 'VND' }: CategoryDi
     value: item.percentage,
     color: CHART_COLORS[index % CHART_COLORS.length],
     text: `${item.percentage}%`,
-    textColor: '#FFFFFF',
+    textColor: theme.textInverse?.val || '#FFFFFF',
     fontSize: 12,
     label: item.category,
     focused: selectedSlice?.category === item.category,
   }));
 
-  const textColor = theme.textPrimary?.val || '#111111';
+  const textColor = theme.textPrimary?.val;
 
   return (
     <YStack gap={16}>
@@ -66,17 +76,17 @@ export function CategoryDistributionChart({ data, currency = 'VND' }: CategoryDi
           data={pieData}
           donut
           showText
-          textColor="#FFFFFF"
+          textColor={theme.textInverse?.val || '#FFFFFF'}
           radius={120}
           innerRadius={60}
           innerCircleColor={theme.background?.val || '#FFFFFF'}
           focusOnPress
-          onPress={(item: any, index: number) => {
+          onPress={(item: PieChartItem, index: number) => {
             setSelectedSlice(data[index]);
           }}
           sectionAutoFocus
           strokeWidth={2}
-          strokeColor="#FFFFFF"
+          strokeColor={theme.textInverse?.val || '#FFFFFF'}
         />
       </YStack>
 
